@@ -1,13 +1,15 @@
+// const { scrollMonitor } = require("scrollmonitor");
+
 Vue.createApp({
 	data() {
 		return {
 			total: 0,
-			products: [
-				{ title: "Product 1", id: 1, price: 9.99 },
-				{ title: "Product 2", id: 2, price: 9.99 },
-				{ title: "Product 3", id: 3, price: 9.99 },
-			],
+			products: [],
 			cart: [],
+			search: "cat",
+			lastSearch: "",
+			loading: false,
+			results: [],
 		};
 	},
 	methods: {
@@ -40,5 +42,27 @@ Vue.createApp({
 				this.cart.splice(i, 1);
 			}
 		},
+		onSubmit() {
+			this.results = [];
+			this.products = [];
+			this.loading = true;
+			fetch(`/search?q=${this.search}`)
+				.then((response) => response.json())
+				.then((body) => {
+					this.lastSearch = this.search;
+					this.results = body;
+					this.products = body.slice(0, 4);
+					this.loading = false;
+				});
+		},
+	},
+	created() {
+		this.onSubmit();
 	},
 }).mount("#app");
+
+const sensor = document.querySelector("#product-list-bottom");
+const watcher = scrollMonitor.create(sensor);
+watcher.enterViewport(function () {
+	console.log("sensor has entered the viewport");
+});
